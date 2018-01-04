@@ -86,7 +86,7 @@ logging.info('Target RNN Hidden Dim  : %s' % (config['model']['dim']))
 logging.info('Source RNN Depth : %d ' % (config['model']['n_layers_src']))
 logging.info('Target RNN Depth : %d ' % (1))
 logging.info('Source RNN Bidirectional  : %s' % (config['model']['bidirectional']))
-logging.info('Batch Size : %d ' % (config['model']['n_layers_trg']))
+logging.info('Batch Size : %d ' % (config['data']['batch_size']))
 logging.info('Optimizer : %s ' % (config['training']['optimizer']))
 logging.info('Learning Rate : %f ' % (config['training']['lrate']))
 
