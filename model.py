@@ -818,6 +818,18 @@ class Seq2SeqAttention(nn.Module):
         src_emb = self.src_embedding(input_src)
         trg_emb = self.trg_embedding(input_trg)
 
+        f3_emb = self.src_embedding(input_src_f3)
+        f5_emb = self.src_embedding(input_src_f5)
+
+        extended_embedding = Variable(torch.randn(80, len(input_src[0]), 500)).cuda() 
+
+        """
+        Feature concatenation
+        For every batches, Pull embedding vectors of features 1, 2 and 3 and add them
+        """        
+        for i, s in enumerate(src_emb):
+          extended_embedding[i,:,:] = (src_emb[i,:,:]+ f3_emb[i,:,:] + f5_emb[i,:,:]
+
         self.h0_encoder, self.c0_encoder = self.get_state(input_src)
 
         src_h, (src_h_t, src_c_t) = self.encoder(
