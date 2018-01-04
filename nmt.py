@@ -245,8 +245,10 @@ for i in xrange(start,1000):
     #     metric='bleu',
     # )
 
-    logging.info('Epoch : %d : BLEU : %.5f ' % (i, bleu))
+    #logging.info('Epoch : %d : BLEU : %.5f ' % (i, bleu))
 
+# Save model , saving after every 10 epochs
+if i > 0 and i%10==0:
     torch.save(
         model.state_dict(),
         open(os.path.join(
