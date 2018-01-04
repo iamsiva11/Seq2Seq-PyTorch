@@ -174,6 +174,7 @@ def read_nmt_data(src, config, trg=None):
     src = { 'data': src_lines ,  'word2id': src_word2id, 'id2word': src_id2word }
     src_f3 = {'data': f3_lines, 'word2id': srcf3_word2id, 'id2word': srcf3_id2word}
     src_f5 = {'data': f5_lines, 'word2id': srcf5_word2id, 'id2word': srcf5_id2word}
+    
     if trg is not None:
         print 'Reading target data ...'
         trg_lines = []
@@ -190,7 +191,7 @@ def read_nmt_data(src, config, trg=None):
     else:
         trg = None
 
-    return src, trg
+    return src, trg, src_f3, src_f5
 
 
 
