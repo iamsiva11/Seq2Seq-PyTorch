@@ -79,30 +79,6 @@ def construct_vocab(lines, vocab_size):
     return word2id, id2word
 
 
-def read_dialog_summarization_data(src, config, trg):
-    """Read data from files."""
-    print 'Reading source data ...'
-    src_lines = []
-    with open(src, 'r') as f:
-        for ind, line in enumerate(f):
-            src_lines.append(line.strip().split())
-
-    print 'Reading target data ...'
-    trg_lines = []
-    with open(trg, 'r') as f:
-        for line in f:
-            trg_lines.append(line.strip().split())
-
-    print 'Constructing common vocabulary ...'
-    word2id, id2word = construct_vocab(
-        src_lines + trg_lines, config['data']['n_words_src']
-    )
-
-    src = {'data': src_lines, 'word2id': word2id, 'id2word': id2word}
-    trg = {'data': trg_lines, 'word2id': word2id, 'id2word': id2word}
-
-    return src, trg
-
 
 def read_nmt_data(src, config, trg=None):
     """Read data from files."""
@@ -139,15 +115,6 @@ def read_nmt_data(src, config, trg=None):
     return src, trg
 
 
-def read_summarization_data(src, trg):
-    """Read data from files."""
-    src_lines = [line.strip().split() for line in open(src, 'r')]
-    trg_lines = [line.strip().split() for line in open(trg, 'r')]
-    word2id, id2word = construct_vocab(src_lines + trg_lines, 30000)
-    src = {'data': src_lines, 'word2id': word2id, 'id2word': id2word}
-    trg = {'data': trg_lines, 'word2id': word2id, 'id2word': id2word}
-
-    return src, trg
 
 
 def get_minibatch(
@@ -203,56 +170,3 @@ def get_minibatch(
 
     return input_lines, output_lines, lens, mask
 
-
-def get_autoencode_minibatch(
-    lines, word2ind, index, batch_size,
-    max_len, add_start=True, add_end=True
-):
-    """Prepare minibatch."""
-    if add_start and add_end:
-        lines = [
-            ['<s>'] + line + ['</s>']
-            for line in lines[index:index + batch_size]
-        ]
-    elif add_start and not add_end:
-        lines = [
-            ['<s>'] + line
-            for line in lines[index:index + batch_size]
-        ]
-    elif not add_start and add_end:
-        lines = [
-            line + ['</s>']
-            for line in lines[index:index + batch_size]
-        ]
-    elif not add_start and not add_end:
-        lines = [
-            line
-            for line in lines[index:index + batch_size]
-        ]
-    lines = [line[:max_len] for line in lines]
-
-    lens = [len(line) for line in lines]
-    max_len = max(lens)
-
-    input_lines = [
-        [word2ind[w] if w in word2ind else word2ind['<unk>'] for w in line[:-1]] +
-        [word2ind['<pad>']] * (max_len - len(line))
-        for line in lines
-    ]
-
-    output_lines = [
-        [word2ind[w] if w in word2ind else word2ind['<unk>'] for w in line[1:]] +
-        [word2ind['<pad>']] * (max_len - len(line))
-        for line in lines
-    ]
-
-    mask = [
-        ([1] * (l)) + ([0] * (max_len - l))
-        for l in lens
-    ]
-
-    input_lines = Variable(torch.LongTensor(input_lines)).cuda()
-    output_lines = Variable(torch.LongTensor(output_lines)).cuda()
-    mask = Variable(torch.FloatTensor(mask)).cuda()
-
-    return input_lines, output_lines, lens, mask
