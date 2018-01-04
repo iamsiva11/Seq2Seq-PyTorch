@@ -76,12 +76,13 @@ def decode_minibatch(
     model,
     input_lines_src,
     input_lines_trg,
+    input_lines_f3, input_lines_f5,
     output_lines_trg_gold
 ):
     """Decode a minibatch."""
     for i in xrange(config['data']['max_trg_length']):
 
-        decoder_logit = model(input_lines_src, input_lines_trg)
+        decoder_logit = model(input_lines_src, input_lines_trg, input_lines_f3, input_lines_f5)
         word_probs = model.decode(decoder_logit)
         decoder_argmax = word_probs.data.cpu().numpy().argmax(axis=-1)
         next_preds = Variable(
@@ -139,13 +140,18 @@ def model_perplexity(
 
 def evaluate_model(
     model, src, src_test, trg,
-    trg_test, config, src_valid=None, trg_valid=None,
+    trg_test, srcf3, srcf3_test, srcf5 ,srcf5_test ,config, src_valid=None, trg_valid=None,
     verbose=True, metric='bleu'
 ):
     """Evaluate model."""
     preds = []
     ground_truths = []
+    #for j in xrange(0, len(src_test['data']), config['data']['batch_size']):
     for j in xrange(0, len(src_test['data']), config['data']['batch_size']):
+
+    # EDIT
+        # Print evaluation status
+        print "Evaluating- " + str(j)
 
         # Get source minibatch
         input_lines_src, output_lines_src, lens_src, mask_src = get_minibatch(
@@ -162,6 +168,20 @@ def evaluate_model(
             )
         )
 
+       ##########EDIT
+       # get features minibatch
+       ###############
+        input_lines_f3, output_lines_f3, lens_f3, mask_f3 = get_minibatch(
+            srcf3_test['data'], srcf3['word2id'], j, config['data']['batch_size'],
+            config['data']['max_src_length'], add_start=True, add_end=True
+        )
+
+        input_lines_f5, output_lines_f5, lens_f5, mask_f5 = get_minibatch(
+            srcf5_test['data'], srcf5['word2id'], j, config['data']['batch_size'],
+            config['data']['max_src_length'], add_start=True, add_end=True
+        )
+
+
         # Initialize target with <s> for every sentence
         input_lines_trg = Variable(torch.LongTensor(
             [
@@ -173,7 +193,9 @@ def evaluate_model(
         # Decode a minibatch greedily __TODO__ add beam search decoding
         input_lines_trg = decode_minibatch(
             config, model, input_lines_src,
-            input_lines_trg, output_lines_trg_gold
+            input_lines_trg,
+        input_lines_f3, input_lines_f5,
+        output_lines_trg_gold
         )
 
         # Copy minibatch outputs to cpu and convert ids to words
@@ -214,6 +236,7 @@ def evaluate_model(
             if verbose:
                 print '--------------------------------------'
             ground_truths.append(['<s>'] + sentence_real[:index + 1])
+        print get_bleu(preds, ground_truths)
 
     return get_bleu(preds, ground_truths)
 
