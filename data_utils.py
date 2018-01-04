@@ -146,9 +146,34 @@ def read_nmt_data(src, config, trg=None):
         src_lines, config['data']['n_words_src']
     )
 
-    src = {'data': src_lines, 'word2id': src_word2id, 'id2word': src_id2word}
-    del src_lines
+        print 'Reading feature-src_f3 data ...'
+    f3_lines = []
+    with open(src_f3, 'r') as f:
+        for ind, line in enumerate(f):
+            f3_lines.append(line.strip().split())
 
+    print 'constructing f3 vocabulary ...'
+    srcf3_word2id, srcf3_id2word = construct_vocab_forFeatures(
+         f3_lines, 5+4, 22729
+    )
+
+
+    print 'Reading feature-src_f5 data ...'
+    f5_lines = []
+    with open(src_f5, 'r') as f:
+        for ind, line in enumerate(f):
+            f5_lines.append(line.strip().split())
+
+
+    print 'constructing f5 vocabulary ...'
+    srcf5_word2id, srcf5_id2word = construct_vocab_forFeatures(
+         f5_lines, 33+4, 22739
+    )
+    
+
+    src = { 'data': src_lines ,  'word2id': src_word2id, 'id2word': src_id2word }
+    src_f3 = {'data': f3_lines, 'word2id': srcf3_word2id, 'id2word': srcf3_id2word}
+    src_f5 = {'data': f5_lines, 'word2id': srcf5_word2id, 'id2word': srcf5_id2word}
     if trg is not None:
         print 'Reading target data ...'
         trg_lines = []
