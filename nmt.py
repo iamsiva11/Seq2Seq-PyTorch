@@ -170,7 +170,8 @@ elif config['training']['optimizer'] == 'sgd':
 else:
     raise NotImplementedError("Learning method not recommend for task")
 
-for i in xrange(1000):
+start = 0 # Modify start if resuming training ater cetain epochs( from loaded model) ; 0 by default 
+for i in xrange(start,1000):
     losses = []
     for j in xrange(0, len(src['data']), batch_size):
 
@@ -183,7 +184,20 @@ for i in xrange(1000):
             batch_size, max_length, add_start=True, add_end=True
         )
 
-        decoder_logit = model(input_lines_src, input_lines_trg)
+    # minibatch for extra features f3 - from master vocab
+        input_lines_f3, _, lens_f3, mask_f3 = get_minibatch(
+            srcf3['data'], srcf3['word2id'], j,
+            batch_size, max_length, add_start=True, add_end=True
+        )
+
+    # minibatch for extra features f5 - from master vocab
+        input_lines_f5, _, lens_f5, mask_f5 = get_minibatch(
+            srcf5['data'], srcf5['word2id'], j,
+            batch_size, max_length, add_start=True, add_end=True
+        )
+
+        # Passing features - 1,2,3 and target 
+        decoder_logit = model(input_lines_src, input_lines_trg, input_lines_f3, input_lines_f5)
         optimizer.zero_grad()
 
         loss = loss_criterion(
@@ -225,32 +239,11 @@ for i in xrange(1000):
                 logging.info('Real : %s ' % (' '.join(sentence_real)))
                 logging.info('===============================================')
 
-        if j % config['management']['checkpoint_freq'] == 0:
-
-            logging.info('Evaluating model ...')
-            bleu = evaluate_model(
-                model, src, src_test, trg,
-                trg_test, config, verbose=False,
-                metric='bleu',
-            )
-
-            logging.info('Epoch : %d Minibatch : %d : BLEU : %.5f ' % (i, j, bleu))
-
-            logging.info('Saving model ...')
-
-            torch.save(
-                model.state_dict(),
-                open(os.path.join(
-                    save_dir,
-                    experiment_name + '__epoch_%d__minibatch_%d' % (i, j) + '.model'), 'wb'
-                )
-            )
-
-    bleu = evaluate_model(
-        model, src, src_test, trg,
-        trg_test, config, verbose=False,
-        metric='bleu',
-    )
+    # bleu = evaluate_model(
+    #     model, src, src_test, trg,
+    #     trg_test, config, verbose=False,
+    #     metric='bleu',
+    # )
 
     logging.info('Epoch : %d : BLEU : %.5f ' % (i, bleu))
 
