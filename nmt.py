@@ -52,17 +52,22 @@ logging.getLogger('').addHandler(console)
 
 print 'Reading data ...'
 
-src, trg = read_nmt_data(
+src, trg, srcf3, srcf5 = read_nmt_data(
     src=config['data']['src'],
     config=config,
+    src_f3 = config['data']['f3_src'],
+    src_f5 = config['data']['f5_src'],
     trg=config['data']['trg']
 )
 
-src_test, trg_test = read_nmt_data(
+src_test, trg_test, srcf3_test, srcf5_test  = read_nmt_data(
     src=config['data']['test_src'],
     config=config,
+    src_f3 = config['data']['test_f3_src'],
+    src_f5 = config['data']['test_f5_src'],
     trg=config['data']['test_trg']
 )
+
 
 batch_size = config['data']['batch_size']
 max_length = config['data']['max_src_length']
